@@ -1,5 +1,3 @@
-import crypto from "crypto";
-
 const TASA_MENSUAL = 0.0185; // 1.85% M.V.
 
 export function calcularExcedenteYCuota({
@@ -58,12 +56,10 @@ async function consultarCentralRiesgo({
     }
   }
 
-  // Banda base realista: 500 a 749 pts según historial de la cédula
-  const hash = crypto
-    .createHash("sha256")
-    .update(cedulaLimpia || "0")
-    .digest("hex");
-  const baseHistorial = 500 + (parseInt(hash.slice(0, 4), 16) % 250);
+  // Puntaje base determinista (500 a 748 pts) según los últimos 2 dígitos de la cédula
+  const ultimosDos = Number(cedulaLimpia.slice(-2));
+  const baseHistorial =
+    500 + Math.round((Number.isNaN(ultimosDos) ? 50 : ultimosDos) * 2.5);
 
   const ajusteOcupacion =
     ocupacion === "Empleado dependiente"

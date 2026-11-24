@@ -1,0 +1,41 @@
+# Dependencias
+node_modules
+**/node_modules
+
+# Compilados y cachés
+dist
+dist-ssr
+build
+.vite
+*.local
+
+# Variables de entorno y secretos (CRÍTICO)
+.env
+.env.*
+!.env.example
+
+# Archivos subidos por usuarios en el backend
+backend/uploads/*
+!backend/uploads/.gitkeep
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Sistema operativo (macOS / Windows) y editores
+.DS_Store
+**/.DS_Store
+Thumbs.db
+.vscode/*
+!.vscode/extensions.json
+.idea
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?

@@ -1,4 +1,4 @@
-import crypto from 'crypto';
+import crypto from "crypto";
 
 const TASA_MENSUAL = 0.0185; // 1.85% M.V.
 
@@ -18,7 +18,7 @@ export function calcularExcedenteYCuota({
 
   const factor = Math.pow(1 + TASA_MENSUAL, Number(plazoMeses));
   const cuotaEstimada = Math.round(
-    (Number(montoSolicitado) * (TASA_MENSUAL * factor)) / (factor - 1)
+    (Number(montoSolicitado) * (TASA_MENSUAL * factor)) / (factor - 1),
   );
 
   const capacidadMaximaCuota = Math.max(0, Math.round(excedenteNeto * 0.3));
@@ -38,13 +38,13 @@ async function consultarCentralRiesgo({
   excedenteNeto,
 }) {
   const inicio = Date.now();
-  const cedulaLimpia = String(cedula || '').replace(/\D/g, '');
+  const cedulaLimpia = String(cedula || "").replace(/\D/g, "");
 
   if (process.env.BUREAU_API_URL && process.env.BUREAU_API_KEY) {
     const resp = await fetch(`${process.env.BUREAU_API_URL}/score`, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
         Authorization: `Bearer ${process.env.BUREAU_API_KEY}`,
       },
       body: JSON.stringify({ cedula: cedulaLimpia }),
@@ -58,27 +58,36 @@ async function consultarCentralRiesgo({
     }
   }
 
-  // Banda base más equilibrada: 560 a 779 pts
-  const hash = crypto.createHash('sha256').update(cedulaLimpia || '0').digest('hex');
-  const baseHistorial = 560 + (parseInt(hash.slice(0, 4), 16) % 220);
+  // Banda base realista: 500 a 749 pts según historial de la cédula
+  const hash = crypto
+    .createHash("sha256")
+    .update(cedulaLimpia || "0")
+    .digest("hex");
+  const baseHistorial = 500 + (parseInt(hash.slice(0, 4), 16) % 250);
 
   const ajusteOcupacion =
-    ocupacion === 'Empleado dependiente'
-      ? 35
-      : ocupacion === 'Pensionado'
-      ? 45
-      : 15;
+    ocupacion === "Empleado dependiente"
+      ? 20
+      : ocupacion === "Pensionado"
+        ? 25
+        : 5;
 
-  const ratioMontoIngreso = Number(montoSolicitado) / Math.max(1, Number(ingresosMensuales));
-  const ajusteEndeudamiento = ratioMontoIngreso <= 3 ? 30 : ratioMontoIngreso <= 5 ? 0 : -45;
+  const ratioMontoIngreso =
+    Number(montoSolicitado) / Math.max(1, Number(ingresosMensuales));
+  const ajusteEndeudamiento =
+    ratioMontoIngreso <= 1.5 ? 15 : ratioMontoIngreso <= 3 ? 0 : -30;
 
-  // Bonificación si conserva más del 50% de sus ingresos como excedente libre
-  const ratioExcedente = Number(excedenteNeto) / Math.max(1, Number(ingresosMensuales));
-  const ajusteLiquidez = ratioExcedente >= 0.5 ? 35 : ratioExcedente >= 0.25 ? 10 : -30;
+  const ratioExcedente =
+    Number(excedenteNeto) / Math.max(1, Number(ingresosMensuales));
+  const ajusteLiquidez =
+    ratioExcedente >= 0.5 ? 20 : ratioExcedente >= 0.3 ? 5 : -20;
 
   const scoreFinal = Math.min(
     950,
-    Math.max(300, baseHistorial + ajusteOcupacion + ajusteEndeudamiento + ajusteLiquidez)
+    Math.max(
+      300,
+      baseHistorial + ajusteOcupacion + ajusteEndeudamiento + ajusteLiquidez,
+    ),
   );
 
   return { score: scoreFinal, latenciaMs: Date.now() - inicio + 320 };
@@ -93,21 +102,22 @@ export async function evaluarRiesgoCrediticio({
   cuotaEstimada,
   capacidadMaximaCuota,
 }) {
-  const { score: scoreDatacredito, latenciaMs: latenciaApiMs } = await consultarCentralRiesgo({
-    cedula,
-    ocupacion,
-    ingresosMensuales,
-    montoSolicitado,
-    excedenteNeto,
-  });
+  const { score: scoreDatacredito, latenciaMs: latenciaApiMs } =
+    await consultarCentralRiesgo({
+      cedula,
+      ocupacion,
+      ingresosMensuales,
+      montoSolicitado,
+      excedenteNeto,
+    });
 
   if (excedenteNeto <= 0) {
     return {
       scoreDatacredito,
       latenciaApiMs,
-      estado: 'Rechazada',
-      modalidadDecision: 'Automática',
-      causalRechazo: 'Excedente neto mensual negativo o igual a $0 COP',
+      estado: "Rechazada",
+      modalidadDecision: "Automática",
+      causalRechazo: "Excedente neto mensual negativo o igual a $0 COP",
     };
   }
 
@@ -115,9 +125,10 @@ export async function evaluarRiesgoCrediticio({
     return {
       scoreDatacredito,
       latenciaApiMs,
-      estado: 'Rechazada',
-      modalidadDecision: 'Automática',
-      causalRechazo: 'La cuota estimada supera el 30% de capacidad de pago disponible',
+      estado: "Rechazada",
+      modalidadDecision: "Automática",
+      causalRechazo:
+        "La cuota estimada supera el 30% de capacidad de pago disponible",
     };
   }
 
@@ -125,8 +136,8 @@ export async function evaluarRiesgoCrediticio({
     return {
       scoreDatacredito,
       latenciaApiMs,
-      estado: 'Aprobada',
-      modalidadDecision: 'Automática',
+      estado: "Aprobada",
+      modalidadDecision: "Automática",
       causalRechazo: null,
     };
   }
@@ -135,7 +146,7 @@ export async function evaluarRiesgoCrediticio({
     return {
       scoreDatacredito,
       latenciaApiMs,
-      estado: 'En revisión',  
+      estado: "En revisión",
       modalidadDecision: null,
       causalRechazo: null,
     };
@@ -144,8 +155,8 @@ export async function evaluarRiesgoCrediticio({
   return {
     scoreDatacredito,
     latenciaApiMs,
-    estado: 'Rechazada',
-    modalidadDecision: 'Automática',
+    estado: "Rechazada",
+    modalidadDecision: "Automática",
     causalRechazo: `Puntaje en central de riesgo (${scoreDatacredito}) inferior al umbral mínimo (600)`,
   };
 }

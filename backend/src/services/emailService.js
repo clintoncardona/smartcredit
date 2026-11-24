@@ -91,10 +91,37 @@ export async function enviarCorreoRecuperacion({
   </html>
   `;
 
+  const asunto = `${codigo} es tu código de recuperación · SmartCredit`;
+
+  if (process.env.BREVO_API_KEY) {
+    const resp = await fetch("https://api.brevo.com/v3/smtp/email", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "api-key": process.env.BREVO_API_KEY,
+      },
+      body: JSON.stringify({
+        sender: {
+          name: "Banco Andino - SmartCredit",
+          email: process.env.SMTP_USER,
+        },
+        to: [{ email: correo, name: nombre }],
+        subject: asunto,
+        htmlContent: htmlCorporativo,
+      }),
+    });
+
+    if (!resp.ok) {
+      const detalle = await resp.text();
+      throw new Error(`Brevo API error (${resp.status}): ${detalle}`);
+    }
+    return;
+  }
+
   await transporter.sendMail({
     from: `"Banco Andino - SmartCredit" <${process.env.SMTP_USER}>`,
     to: correo,
-    subject: `${codigo} es tu código de recuperación · SmartCredit`,
+    subject: asunto,
     html: htmlCorporativo,
   });
 }

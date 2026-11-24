@@ -122,7 +122,7 @@ function mapearDatosCliente(
 
 export function App() {
   const [vistaActual, setVistaActual] = useState<AppRoute>("0-inicio");
-  const [usuarioAuth, setUsuarioAuth] = useState<AuthUser | null>(null);
+  const [, setUsuarioAuth] = useState<AuthUser | null>(null);
   const usuarioAuthRef = useRef<AuthUser | null>(null);
   const [verificandoSesion, setVerificandoSesion] = useState(true);
   const [solicitud, setSolicitud] =

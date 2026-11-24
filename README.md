@@ -1,5 +1,7 @@
 # SmartCredit · Banco Andino S.A.
 
+**Demo en vivo:** [https://smartcredit-eight.vercel.app](https://smartcredit-eight.vercel.app) · **Estado de API:** [Healthcheck](https://smartcredit-api-4jhy.onrender.com/api/health)
+
 Plataforma web full-stack de originación digital de crédito de libre inversión y mesa de control de riesgo crediticio. Permite a los clientes simular su crédito, registrarse, diligenciar su solicitud en 4 pasos, adjuntar soportes documentales y firmar digitalmente su contrato, mientras los analistas de riesgo evalúan solicitudes en franja intermedia y monitorean indicadores de originación en tiempo real.
 
 ---

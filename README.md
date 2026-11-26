@@ -10,7 +10,7 @@ Plataforma web full-stack de originación digital de crédito de libre inversió
 
 ### Portal del Cliente
 
-- **Simulador interactivo y plan de pagos:** Cálculo dinámico de cuota mensual fija bajo amortización francesa ($1.85\%\text{ M.V.}$) según monto solicitado ($\$1\text{M}$ a $\$50\text{M COP}$) y plazo ($12\text{ a }48\text{ meses}$), con modal desplegable de **tabla de amortización mes a mes** (abono a capital, intereses y saldo restante).
+- **Simulador interactivo y plan de pagos:** Cálculo dinámico de cuota mensual fija bajo amortización francesa (`1.85% M.V.`) según monto solicitado (`$1M` a `$50M COP`) y plazo (`12 a 48 meses`), con modal desplegable de **tabla de amortización mes a mes** (abono a capital, intereses y saldo restante).
 - **Registro y autenticación segura:** Cifrado de contraseñas con `bcryptjs`, autenticación mediante `JWT`, bloqueo temporal automático tras 3 intentos fallidos (`HTTP 423`), recuperación de contraseña con código OTP de 6 dígitos enviado por correo electrónico y detección no bloqueante de latencia del servidor en la nube.
 - **Flujo guiado de solicitud (Wizard en 4 pasos):**
   1. **Datos personales:** Identificación, información de contacto, residencia y ocupación.
@@ -22,7 +22,7 @@ Plataforma web full-stack de originación digital de crédito de libre inversió
 ### Mesa de Control del Analista
 
 - **Vista General (`3A`):** KPIs operativos, distribución de estados (gráfica de dona) y actividad de radicación por franja horaria.
-- **Bandeja En Revisión (`3B`):** Inspector detallado de solicitudes en franja intermedia ($\text{Score } 600\text{--}699$), visualización de soportes adjuntos, verificación de cuota frente al tope del $30\%$ y emisión de dictamen (Aprobar / Rechazar) con observaciones.
+- **Bandeja En Revisión (`3B`):** Inspector detallado de solicitudes en franja intermedia (`Score 600–699`), visualización de soportes adjuntos, verificación de cuota frente al tope del 30% y emisión de dictamen (Aprobar / Rechazar) con observaciones.
 - **Cartera Aprobada (`3C`):** Filtro por modalidad (Automática / Manual) y modal de inspección de contratos y firmas digitales registradas.
 - **Historial de Rechazos (`3D`):** Auditoría de causales de negación por puntaje crediticio o capacidad de pago.
 - **Reportes y Analítica (`3E`):** Conversión del embudo de crédito, distribución por plazos y exportación de indicadores a formato `CSV`.
@@ -35,9 +35,9 @@ Las reglas se evalúan en cascada dentro de `creditEngine.service.js`:
 
 | Orden | Criterio evaluado           | Condición                                                 | Resultado automático                         |
 | :---: | :-------------------------- | :-------------------------------------------------------- | :------------------------------------------- |
-| **1** | **Excedente disponible**    | $\text{Excedente Neto} \le \$0\text{ COP}$                | **Rechazada** (Excedente negativo o nulo)    |
-| **2** | **Capacidad de pago**       | $\text{Cuota estimada} > 30\% \text{ del Excedente Neto}$ | **Rechazada** (Capacidad insuficiente)       |
-| **3** | **Perfil óptimo**           | $\text{Score} \ge 700\text{ pts}$ y cuota dentro del $30\%$ | **Aprobada** (Modalidad automática)          |
+| **1** | **Excedente disponible**    | $\text{Excedente Neto} \le$ `$0 COP`                      | **Rechazada** (Excedente negativo o nulo)    |
+| **2** | **Capacidad de pago**       | $\text{Cuota estimada} > 30\%$ del Excedente Neto         | **Rechazada** (Capacidad insuficiente)       |
+| **3** | **Perfil óptimo**           | $\text{Score} \ge 700\text{ pts}$ y cuota dentro del 30%  | **Aprobada** (Modalidad automática)          |
 | **4** | **Franja intermedia**       | $600 \le \text{Score} \le 699\text{ pts}$                 | **En revisión** (Enrutada a mesa de control) |
 | **5** | **Puntaje crediticio bajo** | $\text{Score} < 600\text{ pts}$                           | **Rechazada** (Score inferior al mínimo)     |
 
@@ -117,7 +117,7 @@ SMARTCREDIT/
 
 ## Pruebas Automatizadas y Cobertura
 
-El backend cuenta con una suite automatizada en **Vitest** y **Supertest** (`4` suites, `22` pruebas aprobadas) que alcanza un **$98.59\%$ de cobertura** sobre los servicios de negocio ($100\%$ en `creditEngine.service.js` y `documentAnalyzer.service.js`):
+El backend cuenta con una suite automatizada en **Vitest** y **Supertest** (`4` suites, `22` pruebas aprobadas) que alcanza un **98.59% de cobertura** sobre los servicios de negocio (**100%** en `creditEngine.service.js` y `documentAnalyzer.service.js`):
 
 ```bash
 cd backend

@@ -21,6 +21,7 @@ import {
   ShieldCheck,
   Smartphone,
   Sparkles,
+  TableProperties,
   TrendingUp,
   X,
 } from "lucide-react";
@@ -72,6 +73,14 @@ interface ArticuloEducativo {
   imagen: string;
   contenido: string[];
   consejoClave: string;
+}
+
+interface FilaAmortizacion {
+  mes: number;
+  cuota: number;
+  abonoCapital: number;
+  interes: number;
+  saldoRestante: number;
 }
 
 const HERO_IMAGEN =
@@ -310,6 +319,36 @@ export const LandingView: React.FC<LandingViewProps> = ({
     (montoSimulado * (tasaMensual * factor)) / (factor - 1),
   );
   const ingresoSugerido = Math.round(cuotaEstimada / 0.3 + 1200000);
+
+  const [amortizacionAbierta, setAmortizacionAbierta] = useState(false);
+
+  const tablaAmortizacion: FilaAmortizacion[] = (() => {
+    const filas: FilaAmortizacion[] = [];
+    let saldo = montoSimulado;
+    for (let mes = 1; mes <= plazoSimulado; mes++) {
+      const interes = Math.round(saldo * tasaMensual);
+      const esUltima = mes === plazoSimulado;
+      const abonoCapital = esUltima
+        ? saldo
+        : Math.min(saldo, Math.max(0, cuotaEstimada - interes));
+      const cuotaMes = esUltima ? abonoCapital + interes : cuotaEstimada;
+      saldo = Math.max(0, saldo - abonoCapital);
+      filas.push({
+        mes,
+        cuota: cuotaMes,
+        abonoCapital,
+        interes,
+        saldoRestante: saldo,
+      });
+    }
+    return filas;
+  })();
+
+  const totalIntereses = tablaAmortizacion.reduce(
+    (acc, fila) => acc + fila.interes,
+    0,
+  );
+  const totalAPagar = montoSimulado + totalIntereses;
 
   const desplazarseA = (id: string) => {
     const el = document.getElementById(id);
@@ -837,6 +876,14 @@ export const LandingView: React.FC<LandingViewProps> = ({
                   </div>
                   <div className="flex justify-between border-t border-[#E9D5FF] pt-2">
                     <span className="text-slate-500">Ingreso sugerido</span>
+                    <button
+                      type="button"
+                      onClick={() => setAmortizacionAbierta(true)}
+                      className="mt-3 w-full py-2.5 px-3 rounded-xl bg-[#F3E8FF]/70 hover:bg-[#F3E8FF] text-[#820AD1] text-xs font-bold inline-flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                    >
+                      <TableProperties size={14} />
+                      <span>Ver tabla de amortización</span>
+                    </button>
                     <span className="font-semibold text-slate-700 tabular-nums">
                       ~{formatoCOP(ingresoSugerido)}
                     </span>
@@ -1487,6 +1534,116 @@ export const LandingView: React.FC<LandingViewProps> = ({
                   className="px-5 py-2 rounded-full bg-[#820AD1] hover:bg-[#6D08B0] text-white text-xs font-bold inline-flex items-center gap-1.5 cursor-pointer"
                 >
                   <span>Solicitar mi crédito</span>
+                  <ArrowRight size={13} />
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      {amortizacionAbierta && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-[1px]"
+          role="dialog"
+          aria-modal="true"
+        >
+          <div className="bg-white rounded-3xl max-w-2xl w-full overflow-hidden shadow-2xl border border-slate-200/80 flex flex-col max-h-[90vh]">
+            <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between gap-4">
+              <div>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-[#820AD1]">
+                  Amortización Francesa · Tasa 1.85% M.V.
+                </span>
+                <h3 className="text-lg font-bold text-slate-900 mt-0.5">
+                  Plan de pagos proyectado a {plazoSimulado} meses
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setAmortizacionAbierta(false)}
+                aria-label="Cerrar plan de pagos"
+                className="w-8 h-8 rounded-full bg-slate-100 text-slate-700 flex items-center justify-center hover:bg-slate-200 cursor-pointer shrink-0"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            <div className="px-6 py-4 bg-[#F8F5FF] border-b border-[#E9D5FF] grid grid-cols-3 gap-3 text-xs">
+              <div>
+                <span className="text-slate-500 block">Capital solicitado</span>
+                <strong className="text-sm font-extrabold text-slate-900 tabular-nums">
+                  {formatoCOP(montoSimulado)}
+                </strong>
+              </div>
+              <div>
+                <span className="text-slate-500 block">Total intereses</span>
+                <strong className="text-sm font-extrabold text-[#820AD1] tabular-nums">
+                  {formatoCOP(totalIntereses)}
+                </strong>
+              </div>
+              <div>
+                <span className="text-slate-500 block">Total a pagar</span>
+                <strong className="text-sm font-extrabold text-slate-900 tabular-nums">
+                  {formatoCOP(totalAPagar)}
+                </strong>
+              </div>
+            </div>
+
+            <div className="overflow-y-auto px-6 py-3 flex-1">
+              <table className="w-full text-left border-collapse text-xs tabular-nums">
+                <thead>
+                  <tr className="border-b border-slate-200 text-[11px] font-bold text-slate-500 uppercase">
+                    <th className="py-2.5 pr-3">Mes</th>
+                    <th className="py-2.5 px-3">Cuota</th>
+                    <th className="py-2.5 px-3">Abono capital</th>
+                    <th className="py-2.5 px-3">Interés (1.85%)</th>
+                    <th className="py-2.5 pl-3 text-right">Saldo restante</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {tablaAmortizacion.map((fila) => (
+                    <tr key={fila.mes} className="hover:bg-slate-50/80">
+                      <td className="py-2 pr-3 font-bold text-slate-700">
+                        #{fila.mes}
+                      </td>
+                      <td className="py-2 px-3 font-semibold text-slate-900">
+                        {formatoCOP(fila.cuota)}
+                      </td>
+                      <td className="py-2 px-3 text-emerald-700 font-medium">
+                        {formatoCOP(fila.abonoCapital)}
+                      </td>
+                      <td className="py-2 px-3 text-slate-500">
+                        {formatoCOP(fila.interes)}
+                      </td>
+                      <td className="py-2 pl-3 text-right font-semibold text-slate-800">
+                        {formatoCOP(fila.saldoRestante)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="px-6 py-4 border-t border-slate-100 flex items-center justify-between gap-3 bg-white">
+              <span className="text-[11px] text-slate-400">
+                Proyección informativa sujeta a aprobación de estudio.
+              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setAmortizacionAbierta(false)}
+                  className="px-4 py-2 rounded-full border border-slate-200 text-xs font-semibold text-slate-700 hover:bg-slate-50 cursor-pointer"
+                >
+                  Cerrar
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAmortizacionAbierta(false);
+                    iniciarRegistroConContexto();
+                  }}
+                  className="px-5 py-2 rounded-full bg-[#820AD1] hover:bg-[#6D08B0] text-white text-xs font-bold inline-flex items-center gap-1.5 cursor-pointer"
+                >
+                  <span>Solicitar crédito</span>
                   <ArrowRight size={13} />
                 </button>
               </div>

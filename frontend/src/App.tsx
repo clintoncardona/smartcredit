@@ -1,3 +1,4 @@
+import { Loader2 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { AnalystRoute } from "./components/ui/AnalystLayout";
 import { AnalystAnalyticsView } from "./pages/AnalystAnalyticsView";
@@ -17,6 +18,7 @@ import {
   clearSession,
   getToken,
   solicitudApi,
+  subscribeSlowNetwork,
   type AuthUser,
 } from "./services/api";
 import type {
@@ -174,6 +176,11 @@ export function App() {
     },
     [],
   );
+  const [servidorDespertando, setServidorDespertando] = useState(false);
+
+  useEffect(() => {
+    return subscribeSlowNetwork(setServidorDespertando);
+  }, []);
 
   // Solo valida la sesión existente una única vez al abrir o recargar la página
   useEffect(() => {
@@ -313,6 +320,24 @@ export function App() {
 
   return (
     <div className="min-h-screen">
+      {servidorDespertando && (
+        <div
+          role="status"
+          aria-live="polite"
+          className="fixed bottom-5 right-5 z-50 flex items-center gap-3 rounded-2xl bg-slate-900/95 text-white px-4 py-3 shadow-2xl border border-purple-500/30 backdrop-blur-md max-w-sm"
+        >
+          <Loader2 size={18} className="text-[#C084FC] animate-spin shrink-0" />
+          <div className="text-xs leading-snug">
+            <p className="font-bold text-white">
+              Conectando con el servidor seguro...
+            </p>
+            <p className="text-[11px] text-slate-300 mt-0.5">
+              Iniciando instancia en la nube de Banco Andino. Un momento por
+              favor.
+            </p>
+          </div>
+        </div>
+      )}
       {vistaActual === "0-inicio" && (
         <LandingView
           onGoToLogin={() => navegarSeguro("1A-login", null)}

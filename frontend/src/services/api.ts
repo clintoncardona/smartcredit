@@ -34,7 +34,76 @@ export function clearSession(): void {
   localStorage.removeItem(USER_KEY);
 }
 
+let peticionesLentasActivas = 0;
+type SlowNetworkListener = (lento: boolean) => void;
+const slowListeners = new Set<SlowNetworkListener>();
+
+export function subscribeSlowNetwork(
+  listener: SlowNetworkListener,
+): () => void {
+  slowListeners.add(listener);
+  return () => {
+    slowListeners.delete(listener);
+  };
+}
+
 async function request<T>(
+  endpoint: string,
+  options: RequestInit = {},
+): Promise<T> {
+  const token = getToken();
+  const isFormData = options.body instanceof FormData;
+
+  const headers: Record<string, string> = {
+    ...(isFormData ? {} : { "Content-Type": "application/json" }),
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    ...((options.headers as Record<string, string>) || {}),
+  };
+
+  let marcadaComoLenta = false;
+  const timerLento = window.setTimeout(() => {
+    marcadaComoLenta = true;
+    peticionesLentasActivas += 1;
+    if (peticionesLentasActivas === 1) {
+      slowListeners.forEach((fn) => fn(true));
+    }
+  }, 3000);
+
+  try {
+    const response = await fetch(`${API_URL}${endpoint}`, {
+      ...options,
+      headers,
+    });
+
+    const data = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+      const error = new Error(
+        data.mensaje || "Error en la comunicación con el servidor.",
+      ) as Error & {
+        status?: number;
+        bloqueado?: boolean;
+        intentosFallidos?: number;
+      };
+      error.status = response.status;
+      error.bloqueado = data.bloqueado;
+      error.intentosFallidos = data.intentosFallidos;
+      throw error;
+    }
+
+    return data as T;
+  } finally {
+    window.clearTimeout(timerLento);
+    if (marcadaComoLenta) {
+      peticionesLentasActivas = Math.max(0, peticionesLentasActivas - 1);
+      if (peticionesLentasActivas === 0) {
+        slowListeners.forEach((fn) => fn(false));
+      }
+    }
+  }
+}
+
+/* async function request<T>(
   endpoint: string,
   options: RequestInit = {},
 ): Promise<T> {
@@ -69,7 +138,7 @@ async function request<T>(
   }
 
   return data as T;
-}
+} */
 
 // 1. AUTENTICACIÓN (Vistas 1A y 1B)
 export const authApi = {

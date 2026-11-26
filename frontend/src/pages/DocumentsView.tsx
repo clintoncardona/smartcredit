@@ -13,6 +13,7 @@ import React, { useRef, useState } from "react";
 import { AlertBanner } from "../components/ui/AlertBanner";
 import { Badge } from "../components/ui/Badge";
 import { Button } from "../components/ui/Button";
+import { DropOverlay } from "../components/ui/DropOverlay";
 import { WizardShell } from "../components/ui/WizardShell";
 import { solicitudApi } from "../services/api";
 import type { DatosFinancieros, DocumentoSoporte } from "../types/credit";
@@ -179,7 +180,7 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({
     return `${Math.max(1, Math.round(bytes / 1024))} KB`;
   };
 
-  const handleSeleccionArchivos = async (files: FileList | null) => {
+  const handleSeleccionArchivos = async (files: FileList | File[] | null) => {
     if (!files || files.length === 0) return;
     setErrorArchivo(null);
     setSubiendo(true);
@@ -259,6 +260,10 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({
       cuotaMaxima={cuotaMaxima}
       showFinancialSummary
     >
+      <DropOverlay
+        activo={!subiendo}
+        onArchivosSoltados={(archivos) => handleSeleccionArchivos(archivos)}
+      />
       <div className="space-y-5">
         <div className="bg-white border border-slate-200/80 rounded-3xl shadow-[0_4px_20px_rgba(15,23,42,0.03)] p-6 md:p-8 space-y-5">
           <div className="flex items-start gap-3">

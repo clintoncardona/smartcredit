@@ -121,10 +121,20 @@ function mapearDatosCliente(
 }
 
 export function App() {
-  const [vistaActual, setVistaActual] = useState<AppRoute>("0-inicio");
+  /* const [vistaActual, setVistaActual] = useState<AppRoute>("0-inicio"); */
+  const [vistaActual, setVistaActual] = useState<AppRoute>(
+    () => PATH_TO_ROUTE[window.location.pathname] ?? "0-inicio",
+  );
   const [, setUsuarioAuth] = useState<AuthUser | null>(null);
   const usuarioAuthRef = useRef<AuthUser | null>(null);
-  const [verificandoSesion, setVerificandoSesion] = useState(true);
+  /* const [verificandoSesion, setVerificandoSesion] = useState(true); */
+  const [verificandoSesion, setVerificandoSesion] = useState(
+    () =>
+      Boolean(getToken()) &&
+      !PUBLIC_ROUTES.includes(
+        PATH_TO_ROUTE[window.location.pathname] ?? "0-inicio",
+      ),
+  );
   const [solicitud, setSolicitud] =
     useState<SolicitudCreditoData>(SOLICITUD_VACIA);
 
@@ -287,12 +297,15 @@ export function App() {
     navegarSeguro("2A-datos-personales", user);
   };
 
-  if (verificandoSesion) {
+  /* if (verificandoSesion) {
     return (
       <div className="min-h-screen bg-[#F5F6F8] flex items-center justify-center text-xs text-slate-500">
         Verificando credenciales de acceso...
       </div>
     );
+  } */
+  if (verificandoSesion) {
+    return null;
   }
 
   const nombreCompleto =
